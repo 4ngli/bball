@@ -1,3 +1,7 @@
+/*
+ * This class generates the window and hosts the animation board
+ */
+
 package edu.brown.cs.angli.bball;
 
 import javax.swing.JFrame;
