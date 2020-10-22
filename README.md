@@ -7,7 +7,7 @@ cs1951w bouncing ball assignment
 - Press and hold for 3 seconds to reset board
 
 ## TODOs
-- Add comments
+- Theme selector
 
 ## Files
 - `pom.xml`: `maven` config
