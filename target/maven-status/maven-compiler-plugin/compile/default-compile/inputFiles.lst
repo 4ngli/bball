@@ -1,5 +1,7 @@
 /home/angli/eclipse-workspace/bball/src/main/java/edu/brown/cs/angli/bball/CollisionHandler.java
+/home/angli/eclipse-workspace/bball/src/main/java/edu/brown/cs/angli/bball/SingleBallHandler.java
 /home/angli/eclipse-workspace/bball/src/main/java/edu/brown/cs/angli/bball/Ball.java
-/home/angli/eclipse-workspace/bball/src/main/java/edu/brown/cs/angli/bball/Main.java
 /home/angli/eclipse-workspace/bball/src/main/java/edu/brown/cs/angli/bball/BouncingBallEx.java
+/home/angli/eclipse-workspace/bball/src/main/java/edu/brown/cs/angli/bball/Main.java
+/home/angli/eclipse-workspace/bball/src/main/java/edu/brown/cs/angli/bball/ConcurrentCollisionHandler.java
 /home/angli/eclipse-workspace/bball/src/main/java/edu/brown/cs/angli/bball/AnimationBoard.java

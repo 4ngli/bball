@@ -17,13 +17,13 @@ public class CollisionHandler {
 
     for (int i = 0; i < balls.size(); i++) {
       for (int j = i + 1; j < balls.size(); j++) {
-        CollisionWithBall(balls.get(i), balls.get(j));
+        CollisionWithBall(balls.get(i), balls.get(j), true);
       }
     }
   }
 
   // Handles the collision between two balls
-  private static void CollisionWithBall(Ball b1, Ball b2) {
+  public static void CollisionWithBall(Ball b1, Ball b2, boolean changeSecond) {
     double d = b1.distance(b2);
     double r1 = b1.getRadius();
     double r2 = b2.getRadius();
@@ -41,8 +41,11 @@ public class CollisionHandler {
 
       b1.setDx(b1NewDx);
       b1.setDy(b1NewDy);
-      b2.setDx(b2NewDx);
-      b2.setDy(b2NewDy);
+
+      if (changeSecond) {
+        b2.setDx(b2NewDx);
+        b2.setDy(b2NewDy);
+      }
 
       double d1 = (r1 + r2 - d) * r1 / (r1 + r2);
       double d2 = (r1 + r2 - d) * r2 / (r1 + r2);
@@ -53,14 +56,17 @@ public class CollisionHandler {
 
       b1.setX(b1NewX);
       b1.setY(b1NewY);
-      b2.setX(b2NewX);
-      b2.setY(b2NewY);
+
+      if (changeSecond) {
+        b2.setX(b2NewX);
+        b2.setY(b2NewY);
+      }
     }
 
   }
 
   // Handles collision between a single ball and four walls
-  private static void CollisionWithWall(Ball b, int top, int bot, int left, int right) {
+  public static void CollisionWithWall(Ball b, int top, int bot, int left, int right) {
     double x = b.getX();
     double y = b.getY();
     double dx = b.getDx();

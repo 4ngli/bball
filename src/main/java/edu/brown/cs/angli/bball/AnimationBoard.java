@@ -21,12 +21,12 @@ import javax.swing.Timer;
 public class AnimationBoard extends JPanel implements ActionListener, MouseListener {
   private Timer timer;
   private ArrayList<Ball> balls;
-
+  private ConcurrentCollisionHandler handler;
 
   private final int B_WIDTH = 600; // board width
   private final int B_HEIGHT = 600; // board height
   private final int DELAY = 20; // timer delay
-  private final int INITIAL_SPEED = 7; // initial speed of balls
+  private final int INITIAL_SPEED = 6; // initial speed of balls
   private final int RADIUS = 25; // radius of balls
   private final int NEW_BALL_X = 250; // x coordinate for added ball
   private final int NEW_BALL_Y = RADIUS; // y coordinate for added ball
@@ -72,6 +72,9 @@ public class AnimationBoard extends JPanel implements ActionListener, MouseListe
     Ball second = new Ball(NEW_BALL_X, NEW_BALL_Y, 0, INITIAL_SPEED, RADIUS);
     balls.add(first);
     balls.add(second);
+
+    this.handler = new ConcurrentCollisionHandler(this.getY(), this.getY() + B_HEIGHT, this.getX(),
+        this.getX() + B_WIDTH, this.balls.size());
   }
 
   @Override
@@ -106,8 +109,12 @@ public class AnimationBoard extends JPanel implements ActionListener, MouseListe
   // At each time step, modify the velocity of balls using the collision handler
   // Then move the balls and increment long press counter
   private void step() {
-    CollisionHandler.HandleCollision(balls, this.getY(), this.getY() + B_HEIGHT, this.getX(),
-        this.getX() + B_WIDTH);
+    try {
+      this.handler.handleCollision(this.balls);
+    } catch (Exception e) {
+
+    }
+    this.balls = this.handler.getNewStates();
     for (Ball ball : balls) {
       ball.move();
     }
@@ -130,6 +137,7 @@ public class AnimationBoard extends JPanel implements ActionListener, MouseListe
     if (balls.size() < MAX_NUM_BALLS) {
       Ball newBall = new Ball(NEW_BALL_X, NEW_BALL_Y, 0, INITIAL_SPEED, RADIUS);
       balls.add(newBall);
+      this.handler.addHandler();
     }
   }
 
@@ -171,5 +179,9 @@ public class AnimationBoard extends JPanel implements ActionListener, MouseListe
       initBalls();
       repaint();
     }
+  }
+
+  public void shutdownHandler() {
+    this.handler.shutdownPool();
   }
 }

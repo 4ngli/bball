@@ -8,7 +8,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Ball {
+public class Ball implements Cloneable {
 
   // possible colors of the ball
   private static final Color[] colors =
@@ -27,6 +27,13 @@ public class Ball {
   private int paletteIndex = 0;
 
   Random rand;
+
+  public Object clone() throws CloneNotSupportedException {
+    Ball newBall = (Ball) super.clone();
+    newBall.rand = new Random();
+
+    return newBall;
+  }
 
   public Ball(double x, double y, double dx, double dy, double r) {
     this.x = x;
