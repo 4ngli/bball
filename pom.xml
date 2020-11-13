@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.brown.cs.angli</groupId>
   <artifactId>bball</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.3</version>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

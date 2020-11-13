@@ -1,6 +1,7 @@
 /**
  * This class aggregates the static functions that handles the collision
  * 
+ * @author angli
  */
 
 package edu.brown.cs.angli.bball;

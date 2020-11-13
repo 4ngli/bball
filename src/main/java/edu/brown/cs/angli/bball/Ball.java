@@ -1,48 +1,36 @@
 /**
  * This class models a ball with center, radius, velocity
+ * 
+ * @author angli
  */
 
 package edu.brown.cs.angli.bball;
 
-import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Random;
 
 public class Ball implements Cloneable {
 
-  // possible colors of the ball
-  private static final Color[] colors =
-      {Color.decode("#FF9AA2"), Color.decode("#FFB7B2"), Color.decode("#FFDAC1"),
-          Color.decode("#E2F0CB"), Color.decode("#B5EAD7"), Color.decode("#C7CEEA")};
+  private double myX = 0;
+  private double myY = 0;
+  private double myDx = 0;
+  private double myDy = 0;
+  private double myRadius;
 
-  private double x = 0;
-  private double y = 0;
-  private double dx = 0;
-  private double dy = 0;
-  private double radius;
 
-  private float r = 0;
-  private float g = 0;
-  private float b = 0;
-  private int paletteIndex = 0;
-
-  Random rand;
+  private int myPaletteIndex = 0;
+  private final int myNumColors = 4;
 
   public Object clone() throws CloneNotSupportedException {
     Ball newBall = (Ball) super.clone();
-    newBall.rand = new Random();
-
     return newBall;
   }
 
   public Ball(double x, double y, double dx, double dy, double r) {
-    this.x = x;
-    this.y = y;
-    this.dx = dx;
-    this.dy = dy;
-    this.radius = r;
-    rand = new Random();
-    this.changeRandomPaletteColor();
+    this.myX = x;
+    this.myY = y;
+    this.myDx = dx;
+    this.myDy = dy;
+    this.myRadius = r;
   }
 
   // Compute the Euclidean distance between two points
@@ -72,87 +60,71 @@ public class Ball implements Cloneable {
 
   // A few helper functions to compute the distance
   public double distance(Ball b2) {
-    return Math.sqrt(
-        (this.x - b2.getX()) * (this.x - b2.getX()) + (this.y - b2.getY()) * (this.y - b2.getY()));
+    return Math.sqrt((myX - b2.getX()) * (myX - b2.getX()) + (myY - b2.getY()) * (myY - b2.getY()));
   }
 
   public double distance(double x1, double y1) {
-    return euclideanDistance(x1, y1, this.x, this.y);
+    return euclideanDistance(x1, y1, myX, myY);
   }
 
   // Getters
   public double getX() {
-    return this.x;
+    return myX;
   }
 
   public double getY() {
-    return this.y;
+    return myY;
   }
 
   public double getDx() {
-    return this.dx;
+    return myDx;
   }
 
   public double getDy() {
-    return dy;
+    return myDy;
   }
 
   public void setDy(double dy) {
-    this.dy = dy;
+    myDy = dy;
   }
 
   public double getRadius() {
-    return radius;
+    return myRadius;
   }
 
 
   // Setters
   public void setRadius(double radius) {
-    this.radius = radius;
+    myRadius = radius;
   }
 
   public void setX(double x) {
-    this.x = x;
+    myX = x;
   }
 
   public void setY(double y) {
-    this.y = y;
+    myY = y;
   }
 
   public void setDx(double dx) {
-    this.dx = dx;
+    myDx = dx;
   }
 
 
-  // Change the color of the ball randomly
-  public void changeRandomColor() {
-    this.r = rand.nextFloat();
-    this.g = rand.nextFloat();
-    this.b = rand.nextFloat();
-  }
-
-  public void changeRandomPaletteColor() {
-    int newColor = rand.nextInt(colors.length);
-    while (newColor == this.paletteIndex) {
-      newColor = rand.nextInt(colors.length);
+  public void changePaletteColor(int newColor) {
+    if (newColor < myNumColors) {
+      myPaletteIndex = newColor;
     }
-    this.paletteIndex = newColor;
-
   }
 
-  // Color getters
-  public Color getColor() {
-    return new Color(this.r, this.g, this.b);
-  }
-
-  public Color getPaletteColor() {
-    return colors[this.paletteIndex];
+  public int getPaletteIndex() {
+    return myPaletteIndex;
   }
 
 
   // Modify the location of the ball according to velocity
   public void move() {
-    this.x += this.dx;
-    this.y += this.dy;
+    myX += myDx;
+    myY += myDy;
   }
 }

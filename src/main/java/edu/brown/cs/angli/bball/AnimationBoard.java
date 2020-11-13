@@ -1,5 +1,7 @@
 /**
  * This is the main animation class which hosts all the animations and handles all interactions
+ * 
+ * @author angli
  */
 
 package edu.brown.cs.angli.bball;
@@ -14,67 +16,92 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.Random;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-public class AnimationBoard extends JPanel implements ActionListener, MouseListener {
-  private Timer timer;
-  private ArrayList<Ball> balls;
-  private ConcurrentCollisionHandler handler;
 
+
+public class AnimationBoard extends JPanel implements ActionListener, MouseListener {
+
+  private final int MENU_HEIGHT = 20;
   private final int B_WIDTH = 600; // board width
-  private final int B_HEIGHT = 600; // board height
-  private final int DELAY = 20; // timer delay
+  private final int B_HEIGHT = 600 + MENU_HEIGHT; // board height
+  private final int DELAY = 19; // timer delay
   private final int INITIAL_SPEED = 6; // initial speed of balls
   private final int RADIUS = 25; // radius of balls
   private final int NEW_BALL_X = 250; // x coordinate for added ball
   private final int NEW_BALL_Y = RADIUS; // y coordinate for added ball
+  private final int ALTERNATIVE_BALL_X = 100; // a different x coordinate for the second ball
+  private final int ALTERNATIVE_BALL_Y = 100; // a different x coordinate for the second ball
   private final int MAX_NUM_BALLS = 20; // maximum number of balls
   private final int LONG_PRESS_DELAY = 2000; // long press delay
+  private final int LONG_PRESS_MAX = LONG_PRESS_DELAY / DELAY;
+  private final int NUM_COLORS = 4;
 
-  private int longPressCounter = 0;
-  private int longPressMax = LONG_PRESS_DELAY / DELAY;
+  private Timer myTimer;
+  private ArrayList<Ball> myBalls;
+  private ConcurrentCollisionHandler myHandler;
+  private ThemeHandler myThemes;
+  private JLabel myHelpText;
+  private int myLongPressCounter = 0;
+  private static Color[] myBallColors;
+  private static Color myBackgroundColor;
+  private static Color myTextColor;
+  private Random myRand;
 
   public AnimationBoard() {
     initBoard();
   }
 
   private void initBoard() {
-    timer = new Timer(DELAY, this);
+    myTimer = new Timer(DELAY, this);
+    myThemes = new ThemeHandler();
+    myBallColors = myThemes.getBallColors();
+    myBackgroundColor = myThemes.getBackgroundColor();
+    myTextColor = myThemes.getTextColor();
+    myRand = new Random();
 
-    setBackground(Color.decode("#E6F9FF"));
+    setBackground(myBackgroundColor);
     setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
     setFocusable(true);
     this.setLayout(null);
 
-    initHelp();
+    myHelpText = getHelpText();
+    this.add(myHelpText);
+
     initBalls();
 
-    timer.start();
+    myTimer.start();
 
     addMouseListener(this);
   }
 
   // Generate the interaction helps
-  private void initHelp() {
+  private JLabel getHelpText() {
     String helpInfo = "<html>Click balls to change color <br>"
         + "Click on blank space to add ball <br>" + "Press for 3 seconds to reset" + "</html>";
     JLabel helpText = new JLabel(helpInfo);
-    this.add(helpText);
+    helpText.setForeground(myTextColor);
     Dimension helpSize = helpText.getPreferredSize();
     helpText.setBounds(B_WIDTH - 20 - helpSize.width, 5, helpSize.width, helpSize.height);
+
+    return helpText;
   }
 
   private void initBalls() {
-    this.balls = new ArrayList<Ball>();
-    Ball first = new Ball(100, 100, 2 * INITIAL_SPEED, 0, RADIUS);
+    this.myBalls = new ArrayList<Ball>();
+    Ball first = new Ball(ALTERNATIVE_BALL_X, ALTERNATIVE_BALL_Y, 2 * INITIAL_SPEED, 0, RADIUS);
     Ball second = new Ball(NEW_BALL_X, NEW_BALL_Y, 0, INITIAL_SPEED, RADIUS);
-    balls.add(first);
-    balls.add(second);
+    first.changePaletteColor(getRandomColor(-1));
+    second.changePaletteColor(getRandomColor(-1));
+    myBalls.add(first);
+    myBalls.add(second);
 
-    this.handler = new ConcurrentCollisionHandler(this.getY(), this.getY() + B_HEIGHT, this.getX(),
-        this.getX() + B_WIDTH, this.balls.size());
+    this.myHandler =
+        new ConcurrentCollisionHandler(this.getY(), this.getY() + B_HEIGHT - MENU_HEIGHT,
+            this.getX(), this.getX() + B_WIDTH, this.myBalls.size());
   }
 
   @Override
@@ -92,8 +119,9 @@ public class AnimationBoard extends JPanel implements ActionListener, MouseListe
   // Draw the balls
   private void drawBoard(Graphics g) {
     Graphics2D g2d = (Graphics2D) g;
-    for (Ball ball : balls) {
-      g2d.setColor(ball.getPaletteColor());
+    for (Ball ball : myBalls) {
+      int currentPaletteIndex = ball.getPaletteIndex();
+      g2d.setColor(myBallColors[currentPaletteIndex]);
       drawCenteredCircle(g2d, (int) ball.getX(), (int) ball.getY(), (int) ball.getRadius());
     }
 
@@ -110,16 +138,18 @@ public class AnimationBoard extends JPanel implements ActionListener, MouseListe
   // Then move the balls and increment long press counter
   private void step() {
     try {
-      this.handler.handleCollision(this.balls);
+      this.myHandler.handleCollision(this.myBalls);
     } catch (Exception e) {
 
     }
-    this.balls = this.handler.getNewStates();
-    for (Ball ball : balls) {
+    this.add(myHelpText);
+
+    this.myBalls = this.myHandler.getNewStates();
+    for (Ball ball : myBalls) {
       ball.move();
     }
 
-    longPressCounter += 1;
+    myLongPressCounter += 1;
   }
 
 
@@ -130,38 +160,33 @@ public class AnimationBoard extends JPanel implements ActionListener, MouseListe
   }
 
   private void onBallClickHandler(Ball nearestBall) {
-    nearestBall.changeRandomPaletteColor();
+    int newColor = this.getRandomColor(nearestBall.getPaletteIndex());
+    nearestBall.changePaletteColor(newColor);
   }
 
   private void blankSpaceClickHandler() {
-    if (balls.size() < MAX_NUM_BALLS) {
+    if (myBalls.size() < MAX_NUM_BALLS) {
       Ball newBall = new Ball(NEW_BALL_X, NEW_BALL_Y, 0, INITIAL_SPEED, RADIUS);
-      balls.add(newBall);
-      this.handler.addHandler();
+      newBall.changePaletteColor(getRandomColor(-1));
+      myBalls.add(newBall);
+      this.myHandler.addHandler();
     }
   }
 
   @Override
-  public void mouseEntered(MouseEvent e) {
-    // TODO Auto-generated method stub
-
-  }
+  public void mouseEntered(MouseEvent e) {}
 
   @Override
-  public void mouseExited(MouseEvent e) {
-    // TODO Auto-generated method stub
-
-  }
+  public void mouseExited(MouseEvent e) {}
 
   // Change color/add ball and start long press counter
   @Override
   public void mousePressed(MouseEvent e) {
-    // TODO Auto-generated method stub
-    longPressCounter = 0;
+    myLongPressCounter = 0;
 
     double mouseX = e.getX();
     double mouseY = e.getY();
-    Ball nearestBall = Ball.getNearestBall(balls, mouseX, mouseY);
+    Ball nearestBall = Ball.getNearestBall(myBalls, mouseX, mouseY);
     if (nearestBall.distance(mouseX, mouseY) < nearestBall.getRadius()) {
       onBallClickHandler(nearestBall);
     } else {
@@ -174,14 +199,44 @@ public class AnimationBoard extends JPanel implements ActionListener, MouseListe
   // If has pressed for more than 3 seconds, reset the board
   @Override
   public void mouseReleased(MouseEvent e) {
-    // TODO Auto-generated method stub
-    if (longPressCounter >= longPressMax) {
+    if (myLongPressCounter >= LONG_PRESS_MAX) {
       initBalls();
       repaint();
+      setBackground(myBackgroundColor);
     }
   }
 
   public void shutdownHandler() {
-    this.handler.shutdownPool();
+    this.myHandler.shutdownPool();
+  }
+
+  public ArrayList<String> getThemeNames() {
+    return myThemes.getThemeNames();
+  }
+
+  public int getCurrentTheme() {
+    return myThemes.getCurrentTheme();
+  }
+
+  public void changeTheme(int i) {
+    myThemes.setTheme(i);
+    myBallColors = myThemes.getBallColors();
+    myBackgroundColor = myThemes.getBackgroundColor();
+    myTextColor = myThemes.getTextColor();
+
+    setBackground(myBackgroundColor);
+
+    this.remove(myHelpText);
+    myHelpText = getHelpText();
+    this.add(myHelpText);
+    repaint();
+  }
+
+  private int getRandomColor(int oldColor) {
+    int newColor = myRand.nextInt(NUM_COLORS);
+    while (newColor == oldColor) {
+      newColor = myRand.nextInt(NUM_COLORS);
+    }
+    return newColor;
   }
 }

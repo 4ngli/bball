@@ -1,3 +1,9 @@
+/**
+ * Concurrent handling of collision
+ * 
+ * @author angli
+ */
+
 package edu.brown.cs.angli.bball;
 
 import java.util.ArrayList;
@@ -6,26 +12,26 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class ConcurrentCollisionHandler {
-  private ExecutorService pool;
-  private ArrayList<Ball> previousStates;
-  private ArrayList<Ball> newStates;
-  private ArrayList<SingleBallHandler> handlers;
-  private ArrayList<Future<Ball>> futures;
+  private ExecutorService myPool;
+  private ArrayList<Ball> myPreviousStates;
+  private ArrayList<Ball> myNewStates;
+  private ArrayList<SingleBallHandler> myHandlers;
+  private ArrayList<Future<Ball>> myFutures;
 
-  private int top;
-  private int bot;
-  private int left;
-  private int right;
+  private int myTop;
+  private int myBot;
+  private int myLeft;
+  private int myRight;
 
   public ConcurrentCollisionHandler(int top, int bot, int left, int right, int numBalls) {
-    this.pool = Executors.newCachedThreadPool();
-    this.top = top;
-    this.bot = bot;
-    this.left = left;
-    this.right = right;
-    this.handlers = new ArrayList<SingleBallHandler>();
-    this.previousStates = new ArrayList<Ball>();
-    this.newStates = new ArrayList<Ball>();
+    myPool = Executors.newCachedThreadPool();
+    myTop = top;
+    myBot = bot;
+    myLeft = left;
+    myRight = right;
+    myHandlers = new ArrayList<SingleBallHandler>();
+    myPreviousStates = new ArrayList<Ball>();
+    myNewStates = new ArrayList<Ball>();
 
     for (int i = 0; i < numBalls; i++) {
       this.addHandler();
@@ -33,52 +39,41 @@ public class ConcurrentCollisionHandler {
   }
 
   public void addHandler() {
-    SingleBallHandler newHandler = new SingleBallHandler(this.top, this.bot, this.left, this.right);
-    this.handlers.add(newHandler);
+    SingleBallHandler newHandler =
+        new SingleBallHandler(this.myTop, this.myBot, this.myLeft, this.myRight);
+    this.myHandlers.add(newHandler);
   }
 
   public void handleCollision(ArrayList<Ball> balls) throws CloneNotSupportedException {
-    this.futures = new ArrayList<Future<Ball>>();
-    this.previousStates = balls;
+    this.myFutures = new ArrayList<Future<Ball>>();
+    this.myPreviousStates = balls;
 
     for (int i = 0; i < balls.size(); i++) {
-      this.handlers.get(i).setStates(i, this.previousStates);
+      this.myHandlers.get(i).setStates(i, this.myPreviousStates);
     }
 
     for (int i = 0; i < balls.size(); i++) {
-      Future<Ball> future = this.pool.submit(this.handlers.get(i));
-      futures.add(future);
+      Future<Ball> future = this.myPool.submit(this.myHandlers.get(i));
+      myFutures.add(future);
     }
 
-    this.newStates = new ArrayList<Ball>();
+    myNewStates = new ArrayList<Ball>();
 
-    boolean allDone = true;
-    for (Future<Ball> future : futures) {
-      allDone &= future.isDone();
-    }
-
-    while (!allDone) {
-      allDone = true;
-      for (Future<Ball> future : futures) {
-        allDone &= future.isDone();
-      }
-    }
-
-    for (Future<Ball> future : futures) {
+    for (Future<Ball> future : myFutures) {
       try {
         Ball ball = future.get();
-        this.newStates.add(ball);
+        this.myNewStates.add(ball);
       } catch (Exception e) {
       }
     }
   }
 
   public ArrayList<Ball> getNewStates() {
-    return this.newStates;
+    return this.myNewStates;
   }
 
   public void shutdownPool() {
-    this.pool.shutdown();
+    this.myPool.shutdown();
   }
 }
 
